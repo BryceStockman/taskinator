@@ -36,11 +36,12 @@ var taskFormHandler = function (event) {
       status: 'To Do',
     };
 
-    createTaskEl(taskDataObj);
+    createTaskEl(taskDataObj, false);
   }
 };
 
-var createTaskEl = function (taskDataObj) {
+var createTaskEl = function (taskDataObj, isLoading) {
+  console.log(taskDataObj.status);
   // Create list item
   var listItemEl = document.createElement('li');
   listItemEl.className = 'task-item';
@@ -65,13 +66,26 @@ var createTaskEl = function (taskDataObj) {
   listItemEl.appendChild(taskActionsEl);
 
   // add entire list item to list
-  tasksToDoEl.appendChild(listItemEl);
+  switch (taskDataObj.status) {
+    case 'To Do':
+    case 'to do':
+      tasksToDoEl.appendChild(listItemEl);
+      break;
+    case 'In Progress':
+    case 'in progress':
+      tasksInProgressEl.appendChild(listItemEl);
+      break;
+    case 'completed':
+    case 'Completed':
+      tasksCompletedEl.appendChild(listItemEl);
+      break;
+  }
 
-  taskDataObj.id = taskIdCounter;
-  tasks.push(taskDataObj);
-
-  saveTasks();
-  loadTasks();
+  if (!isLoading) {
+    taskDataObj.id = taskIdCounter;
+    tasks.push(taskDataObj);
+    saveTasks();
+  }
 
   // increase task counter for next unique id
   taskIdCounter++;
@@ -234,15 +248,20 @@ var saveTasks = function () {
 };
 
 var loadTasks = function () {
-  // Gets task items from localStorage.
-  var tasks = localStorage.getItem('tasks', tasks);
+  var storedTasks = localStorage.getItem('tasks');
+  if (storedTasks) {
+    tasks = JSON.parse(storedTasks);
+  }
 
-  // Converts tasks from the string format back into an array of objects.
-  var tasks = JSON.parse(localStorage.getItem('tasks'));
-  console.log('get tasks', JSON.parse(localStorage.getItem('tasks')));
+  console.log(tasks);
+  // loop through the tasks that you are currently console logging. ( loop included )
 
-  // Iterates through a tasks array and creates task elements on the page from it.
+  for (var i = 0; i < tasks.length; i++) {
+    createTaskEl(tasks[i], true);
+  }
 };
+// call load tasks function.  This can go anywhere in the global scope, but right under loadTasks function definition is good.
+loadTasks();
 
 pageContentEl.addEventListener('change', taskStatusChangeHandler);
 pageContentEl.addEventListener('click', taskButtonHandler);
